@@ -41,7 +41,7 @@ module Datadog
 
             def build_form(env)
               flush = env.request.parcel.data
-              pprof_file, types = build_pprof(flush)
+              pprof_file = build_pprof(flush)
 
               form = {
                 # NOTE: Redundant w/ 'runtime-id' tag below; may want to remove this later.
@@ -64,13 +64,11 @@ module Datadog
                     .reject { |tag_key| TAGS_TO_IGNORE_IN_TAGS_HASH.include?(tag_key) }
                     .map { |tag_key, tag_value| "#{tag_key}:#{tag_value}" }
                 ],
-                FORM_FIELD_DATA => pprof_file,
+                FORM_FIELD_PPROF_DATA => pprof_file,
+                FORM_FIELD_PPROF_TYPE => FORM_FIELD_PPROF_TYPE_AUTO,
                 FORM_FIELD_RUNTIME => flush.language,
                 FORM_FIELD_FORMAT => FORM_FIELD_FORMAT_PPROF
               }
-
-              # Add types
-              form[FORM_FIELD_TYPES] = types.join(',')
 
               # Optional fields
               form[FORM_FIELD_TAGS] << "#{FORM_FIELD_TAG_SERVICE}:#{flush.service}" unless flush.service.nil?
@@ -85,14 +83,14 @@ module Datadog
 
               # Wrap pprof as a gzipped file
               gzipped_data = Datadog::Utils::Compression.gzip(pprof.data)
-              pprof_file = Datadog::Vendor::Multipart::Post::UploadIO.new(
+
+              Datadog::Vendor::Multipart::Post::UploadIO.new(
                 StringIO.new(gzipped_data),
                 HEADER_CONTENT_TYPE_OCTET_STREAM,
                 PPROF_DEFAULT_FILENAME
               )
-
-              [pprof_file, [FORM_FIELD_TYPES_AUTO]]
             end
+
           end
         end
       end
