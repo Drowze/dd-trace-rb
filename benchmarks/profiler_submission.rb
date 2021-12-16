@@ -8,6 +8,7 @@ return unless __FILE__ == $PROGRAM_NAME || VALIDATE_BENCHMARK_MODE
 require 'benchmark/ips'
 require 'ddtrace'
 require 'pry'
+require 'digest'
 require_relative 'dogstatsd_reporter'
 
 # This benchmark measures the performance of encoding pprofs and trying to submit them
