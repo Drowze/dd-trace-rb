@@ -45,11 +45,15 @@ module Datadog
           FORM_FIELD_PPROF_DATA = 'data[0]'.freeze
           FORM_FIELD_PPROF_TYPE = 'types[0]'.freeze
           FORM_FIELD_PPROF_TYPE_AUTO = 'auto'.freeze
+          FORM_FIELD_CODE_PROVENANCE_DATA = 'data[1]'.freeze
+          FORM_FIELD_CODE_PROVENANCE_TYPE_ENTRY = 'types[1]'.freeze
+          FORM_FIELD_CODE_PROVENANCE_TYPE = 'code_provenance'.freeze
 
           HEADER_CONTENT_TYPE = 'Content-Type'.freeze
           HEADER_CONTENT_TYPE_OCTET_STREAM = 'application/octet-stream'.freeze
 
           PPROF_DEFAULT_FILENAME = 'profile.pb.gz'.freeze
+          CODE_PROVENANCE_FILENAME = 'code_provenance.json.gz'.freeze
         end
       end
     end

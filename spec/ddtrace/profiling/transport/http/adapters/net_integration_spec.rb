@@ -13,7 +13,6 @@ require 'ddtrace/transport/http/adapters/net'
 
 RSpec.describe 'Adapters::Net profiling integration tests' do
   before do
-    skip 'TEST_DATADOG_INTEGRATION is not defined' unless ENV['TEST_DATADOG_INTEGRATION']
     skip 'Profiling is not supported on JRuby' if PlatformHelpers.jruby?
     skip 'Profiling is not supported on TruffleRuby' if PlatformHelpers.truffleruby?
   end
@@ -105,12 +104,12 @@ RSpec.describe 'Adapters::Net profiling integration tests' do
           'recording-start' => kind_of(String),
           'recording-end' => kind_of(String),
           'data[0]' => kind_of(String),
-          'types[0]' => /auto/,
+          'types[0]' => 'auto',
           'runtime' => Datadog::Core::Environment::Ext::LANG,
           'format' => Datadog::Ext::Profiling::Transport::HTTP::FORM_FIELD_FORMAT_PPROF
         )
 
-        tags = body["#{Datadog::Ext::Profiling::Transport::HTTP::FORM_FIELD_TAGS}[]"].list
+        tags = body['tags[]'].list
         expect(tags).to include(
           /#{Datadog::Ext::Profiling::Transport::HTTP::FORM_FIELD_TAG_RUNTIME}:#{Datadog::Core::Environment::Ext::LANG}/o,
           /#{Datadog::Ext::Profiling::Transport::HTTP::FORM_FIELD_TAG_RUNTIME_ID}:#{uuid_regex.source}/,
@@ -126,6 +125,22 @@ RSpec.describe 'Adapters::Net profiling integration tests' do
         if Datadog::Core::Environment::Container.container_id
           container_id = Datadog::Core::Environment::Container.container_id[0..11]
           expect(tags).to include(/#{Datadog::Ext::Profiling::Transport::HTTP::FORM_FIELD_TAG_HOST}:#{container_id}/)
+        end
+      end
+
+      context 'when code provenance data is available' do
+        let(:flush) { get_test_profiling_flush(code_provenance: Datadog::Profiling::Collectors::CodeProvenance.new.refresh.generate_json) }
+
+        it 'sends profiles with code provenance data successfully' do
+          client.send_profiling_flush(flush)
+
+          boundary = request['content-type'][%r{^multipart/form-data; boundary=(.+)}, 1]
+          body = WEBrick::HTTPUtils.parse_form_data(StringIO.new(request.body), boundary)
+
+          expect(body).to include('types[1]' => 'code_provenance')
+          code_provenance_data = JSON.parse(Datadog::Utils::Compression.gunzip(body.fetch('data[1]')))
+
+          expect(code_provenance_data).to include('v1' => array_including(hash_including('type' => 'library', 'name' => 'ddtrace')))
         end
       end
       # rubocop:enable Layout/LineLength

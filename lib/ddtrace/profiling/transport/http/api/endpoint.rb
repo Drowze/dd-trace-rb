@@ -75,22 +75,35 @@ module Datadog
               form[FORM_FIELD_TAGS] << "#{FORM_FIELD_TAG_ENV}:#{flush.env}" unless flush.env.nil?
               form[FORM_FIELD_TAGS] << "#{FORM_FIELD_TAG_VERSION}:#{flush.version}" unless flush.version.nil?
 
+              if flush.code_provenance
+                form[FORM_FIELD_CODE_PROVENANCE_DATA] = build_code_provenance(flush)
+                form[FORM_FIELD_CODE_PROVENANCE_TYPE_ENTRY] = FORM_FIELD_CODE_PROVENANCE_TYPE
+              end
+
               form
             end
 
             def build_pprof(flush)
               pprof = encoder.encode(flush)
 
-              # Wrap pprof as a gzipped file
-              gzipped_data = Datadog::Utils::Compression.gzip(pprof.data)
+              gzipped_pprof_data = Datadog::Utils::Compression.gzip(pprof.data)
 
               Datadog::Vendor::Multipart::Post::UploadIO.new(
-                StringIO.new(gzipped_data),
+                StringIO.new(gzipped_pprof_data),
                 HEADER_CONTENT_TYPE_OCTET_STREAM,
                 PPROF_DEFAULT_FILENAME
               )
             end
 
+            def build_code_provenance(flush)
+              gzipped_code_provenance = Datadog::Utils::Compression.gzip(flush.code_provenance)
+
+              Datadog::Vendor::Multipart::Post::UploadIO.new(
+                StringIO.new(gzipped_code_provenance),
+                HEADER_CONTENT_TYPE_OCTET_STREAM,
+                CODE_PROVENANCE_FILENAME,
+              )
+            end
           end
         end
       end
