@@ -1718,7 +1718,7 @@ redis.set 'foo', 'bar'
 | Key | Description | Default |
 | --- | ----------- | ------- |
 | `service_name` | Service name used for `redis` instrumentation | `'redis'` |
-| `command_args` | Show the command arguments (e.g. `key` in `GET key`) as resource name and tag | true |
+| `command_args` | Show the command arguments (e.g. `key` in `GET key`) as resource name and tag | false |
 
 You can also set *per-instance* configuration as it follows:
 
