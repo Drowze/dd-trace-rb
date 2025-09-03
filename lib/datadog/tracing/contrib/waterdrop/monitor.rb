@@ -18,10 +18,6 @@ module Datadog
             message.produced_sync
           ].freeze
 
-          def configuration
-            Datadog.configuration.tracing[:waterdrop]
-          end
-
           def instrument(event_id, payload = {}, &block)
             return super unless TRACEABLE_EVENTS.include?(event_id)
 
@@ -40,7 +36,7 @@ module Datadog
 
                 span.set_tag(Contrib::Karafka::Ext::TAG_MESSAGE_COUNT, payload[:messages].size)
 
-                payload[:messages].each { |message| inject(trace_digest, message) } if configuration[:distributed_tracing]
+                payload[:messages].each { |message| inject(trace_digest, message) }
               else
                 action = event_id.sub('message.produced', 'produce')
 
@@ -48,7 +44,7 @@ module Datadog
                 span.set_tag(Contrib::Karafka::Ext::TAG_PARTITION, payload[:message][:partition])
                 span.set_tag(Contrib::Karafka::Ext::TAG_MESSAGE_COUNT, 1)
 
-                inject(trace_digest, payload[:message]) if configuration[:distributed_tracing]
+                inject(trace_digest, payload[:message])
               end
 
               span.resource = "waterdrop.#{action}"
@@ -63,8 +59,16 @@ module Datadog
           private
 
           def inject(trace_digest, message)
+            return unless datadog_configuration(message[:topic])[:distributed_tracing]
+
             message[:headers] ||= {}
             WaterDrop.inject(trace_digest, message[:headers])
+          end
+
+          # cache the configuration resolution per topic to avoid repeated lookups in message batches
+          def datadog_configuration(topic)
+            @datadog_configuration ||= {}
+            @datadog_configuration[topic] ||= Datadog.configuration.tracing[:waterdrop, topic]
           end
         end
       end
