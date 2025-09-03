@@ -10,8 +10,8 @@ module Datadog
       module Karafka
         # Patch to add tracing to Karafka::Messages::Messages
         module MessagesPatch
-          def configuration
-            Datadog.configuration.tracing[:karafka]
+          def datadog_configuration(topic)
+            Datadog.configuration.tracing[:karafka, topic]
           end
 
           def propagation
@@ -28,6 +28,7 @@ module Datadog
             parent_trace_digest = Datadog::Tracing.active_trace&.to_digest
 
             @messages_array.each do |message|
+              configuration = datadog_configuration(message.topic)
               trace_digest = if configuration[:distributed_tracing]
                                headers = if message.metadata.respond_to?(:raw_headers)
                                            message.metadata.raw_headers
@@ -78,6 +79,9 @@ module Datadog
 
             ::Karafka::Instrumentation::Monitor.prepend(Monitor)
             ::Karafka::Messages::Messages.prepend(MessagesPatch)
+
+            require_relative 'event_listener'
+            ::Karafka.monitor.subscribe(EventListener.new)
           end
         end
       end
