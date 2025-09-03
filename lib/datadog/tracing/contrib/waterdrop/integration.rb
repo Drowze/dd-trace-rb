@@ -37,6 +37,10 @@ module Datadog
           def patcher
             Patcher
           end
+
+          def resolver
+            @resolver ||= Contrib::Configuration::Resolvers::PatternResolver.new
+          end
         end
       end
     end

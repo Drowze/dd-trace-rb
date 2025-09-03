@@ -8,8 +8,6 @@ ThreadHelpers.with_leaky_thread_creation(:rdkafka) do
 end
 require 'datadog'
 
-puts "waterdrop version: #{WaterDrop::VERSION}"
-
 RSpec.describe 'Waterdrop monitor' do
   before do
     Datadog.configure do |c|
