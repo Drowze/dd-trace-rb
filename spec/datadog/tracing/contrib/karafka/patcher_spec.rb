@@ -199,4 +199,33 @@ RSpec.describe 'Karafka patcher' do
       expect(span.resource).to eq 'ABC#consume'
     end
   end
+
+  describe 'framework auto-instrumentation' do
+    around do |example|
+      # Reset before and after each example; don't allow global state to linger.
+      Datadog.registry[:waterdrop].reset_configuration!
+      example.run
+      Datadog.registry[:waterdrop].reset_configuration!
+
+      # reset Karafka internal state as well
+      Karafka::App.config.internal.status.reset!
+      Karafka.refresh!
+    end
+
+    it 'automatically enables waterdrop instrumentation' do
+      Karafka::App.setup do |c|
+        c.kafka = { 'bootstrap.servers': '127.0.0.1:9092' }
+      end
+
+      expect(Datadog.configuration.tracing[:karafka][:enabled]).to be true
+      expect(Datadog.configuration.tracing[:karafka][:distributed_tracing]).to be true
+      expect(Datadog.configuration.tracing[:karafka, 'special_topic'][:enabled]).to be true
+      expect(Datadog.configuration.tracing[:karafka, 'special_topic'][:distributed_tracing]).to be false
+
+      expect(Datadog.configuration.tracing[:waterdrop][:enabled]).to be true
+      expect(Datadog.configuration.tracing[:waterdrop][:distributed_tracing]).to be true
+      expect(Datadog.configuration.tracing[:waterdrop, 'special_topic'][:enabled]).to be true
+      expect(Datadog.configuration.tracing[:waterdrop, 'special_topic'][:distributed_tracing]).to be false
+    end
+  end
 end
