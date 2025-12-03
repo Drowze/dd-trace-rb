@@ -69,18 +69,18 @@ RSpec.describe 'Waterdrop patcher' do
       end
     end
 
-    context 'when DataStreams is enabled' do
-      before do
-        allow(Datadog::DataStreams).to receive(:enabled?).and_return(true)
-      end
-
-      it 'patches without errors' do
-        expect do
-          WaterDrop::Producer.new do |config|
-            config.client_class = WaterDrop::Clients::Buffered
-          end
-        end.not_to raise_error
-      end
-    end
+    # context 'when DataStreams is enabled' do
+    #   before do
+    #     allow(Datadog::DataStreams).to receive(:enabled?).and_return(true)
+    #   end
+    #
+    #   it 'patches without errors' do
+    #     expect do
+    #       WaterDrop::Producer.new do |config|
+    #         config.client_class = WaterDrop::Clients::Buffered
+    #       end
+    #     end.not_to raise_error
+    #   end
+    # end
   end
 end

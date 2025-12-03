@@ -27,14 +27,14 @@ module Datadog
               producer = event[:producer]
               add_middleware(producer)
 
-              if Datadog.configuration.data_streams.enabled
-                producer.monitor.subscribe('message.acknowledged') do |ack_event|
-                  if Datadog::DataStreams.enabled?
-                    payload = ack_event.payload
-                    Datadog::DataStreams.track_kafka_produce(payload[:topic], payload[:partition], payload[:offset])
-                  end
-                end
-              end
+              # if Datadog.configuration.data_streams.enabled
+              #   producer.monitor.subscribe('message.acknowledged') do |ack_event|
+              #     if Datadog::DataStreams.enabled?
+              #       payload = ack_event.payload
+              #       Datadog::DataStreams.track_kafka_produce(payload[:topic], payload[:partition], payload[:offset])
+              #     end
+              #   end
+              # end
             end
           end
 

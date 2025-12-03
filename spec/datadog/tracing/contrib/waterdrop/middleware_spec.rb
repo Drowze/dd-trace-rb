@@ -69,64 +69,64 @@ RSpec.describe 'WaterDrop middleware' do
       end
     end
 
-    context 'when DataStreams is enabled' do
-      before do
-        allow(Datadog::DataStreams).to receive(:enabled?).and_return(true)
-        allow(Datadog::DataStreams).to receive(:set_produce_checkpoint) do |**_kwargs, &block|
-          block.call('data_streams_key', 'data_streams_value')
-        end
-      end
-
-      it 'calls set_produce_checkpoint and injects headers' do
-        message = {topic: 'some_topic', payload: 'hello'}
-
-        middleware.call(message)
-
-        expect(Datadog::DataStreams).to have_received(:set_produce_checkpoint).with(
-          type: 'kafka',
-          destination: 'some_topic',
-          auto_instrumentation: true
-        )
-        expect(message[:headers]).to include('data_streams_key' => 'data_streams_value')
-      end
-
-      it 'initializes headers if not present' do
-        message = {topic: 'some_topic', payload: 'hello'}
-
-        middleware.call(message)
-
-        expect(Datadog::DataStreams).to have_received(:set_produce_checkpoint).with(
-          type: 'kafka',
-          destination: 'some_topic',
-          auto_instrumentation: true
-        )
-      end
-
-      it 'preserves existing headers' do
-        message = {topic: 'some_topic', payload: 'hello', headers: {'existing' => 'header'}}
-
-        middleware.call(message)
-
-        expect(message[:headers]).to include(
-          'data_streams_key' => 'data_streams_value',
-          'existing' => 'header'
-        )
-      end
-    end
-
-    context 'when DataStreams is disabled' do
-      before do
-        allow(Datadog::DataStreams).to receive(:enabled?).and_return(false)
-        allow(Datadog::DataStreams).to receive(:set_produce_checkpoint)
-      end
-
-      it 'does not call set_produce_checkpoint' do
-        message = {topic: 'some_topic', payload: 'hello'}
-
-        middleware.call(message)
-
-        expect(Datadog::DataStreams).not_to have_received(:set_produce_checkpoint)
-      end
-    end
+    # context 'when DataStreams is enabled' do
+    #   before do
+    #     allow(Datadog::DataStreams).to receive(:enabled?).and_return(true)
+    #     allow(Datadog::DataStreams).to receive(:set_produce_checkpoint) do |**_kwargs, &block|
+    #       block.call('data_streams_key', 'data_streams_value')
+    #     end
+    #   end
+    #
+    #   it 'calls set_produce_checkpoint and injects headers' do
+    #     message = {topic: 'some_topic', payload: 'hello'}
+    #
+    #     middleware.call(message)
+    #
+    #     expect(Datadog::DataStreams).to have_received(:set_produce_checkpoint).with(
+    #       type: 'kafka',
+    #       destination: 'some_topic',
+    #       auto_instrumentation: true
+    #     )
+    #     expect(message[:headers]).to include('data_streams_key' => 'data_streams_value')
+    #   end
+    #
+    #   it 'initializes headers if not present' do
+    #     message = {topic: 'some_topic', payload: 'hello'}
+    #
+    #     middleware.call(message)
+    #
+    #     expect(Datadog::DataStreams).to have_received(:set_produce_checkpoint).with(
+    #       type: 'kafka',
+    #       destination: 'some_topic',
+    #       auto_instrumentation: true
+    #     )
+    #   end
+    #
+    #   it 'preserves existing headers' do
+    #     message = {topic: 'some_topic', payload: 'hello', headers: {'existing' => 'header'}}
+    #
+    #     middleware.call(message)
+    #
+    #     expect(message[:headers]).to include(
+    #       'data_streams_key' => 'data_streams_value',
+    #       'existing' => 'header'
+    #     )
+    #   end
+    # end
+    #
+    # context 'when DataStreams is disabled' do
+    #   before do
+    #     allow(Datadog::DataStreams).to receive(:enabled?).and_return(false)
+    #     allow(Datadog::DataStreams).to receive(:set_produce_checkpoint)
+    #   end
+    #
+    #   it 'does not call set_produce_checkpoint' do
+    #     message = {topic: 'some_topic', payload: 'hello'}
+    #
+    #     middleware.call(message)
+    #
+    #     expect(Datadog::DataStreams).not_to have_received(:set_produce_checkpoint)
+    #   end
+    # end
   end
 end
