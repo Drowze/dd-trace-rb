@@ -1,14 +1,10 @@
 # frozen_string_literal: true
 
 require 'datadog/tracing/contrib/support/spec_helper'
-
-# FFI::Function background native thread
-ThreadHelpers.with_leaky_thread_creation(:rdkafka) do
-  require 'karafka'
-end
+require 'waterdrop'
 require 'datadog'
 
-RSpec.describe Datadog::Tracing::Contrib::Karafka::Distributed::Propagation do
+RSpec.describe Datadog::Tracing::Contrib::WaterDrop::Distributed::Propagation do
   subject(:propagation) do
     described_class.new(
       propagation_style_inject: Datadog.configuration.tracing.propagation_style_inject,

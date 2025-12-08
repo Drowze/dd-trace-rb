@@ -7,24 +7,22 @@ require_relative 'patcher'
 module Datadog
   module Tracing
     module Contrib
-      module Karafka
-        # Description of Kafka integration
+      module WaterDrop
+        # Description of WaterDrop integration
         class Integration
           include Contrib::Integration
 
-          # Minimum version of the Karafka library that we support
-          # https://karafka.io/docs/Versions-Lifecycle-and-EOL/#versioning-strategy
-          MINIMUM_VERSION = Gem::Version.new('2.3.0')
+          # WaterDrop added class-level instrumentation in version 2.8.8.rc1
+          MINIMUM_VERSION = Gem::Version.new('2.8.8.rc1')
 
-          # @public_api Changing the integration name or integration options can cause breaking changes
-          register_as :karafka, auto_patch: false
+          register_as :waterdrop, auto_patch: false
 
           def self.version
-            Gem.loaded_specs['karafka']&.version
+            Gem.loaded_specs['waterdrop']&.version
           end
 
           def self.loaded?
-            !defined?(::Karafka).nil?
+            !defined?(::WaterDrop).nil?
           end
 
           def self.compatible?
